@@ -1,3 +1,5 @@
+# This uses python 3.8 and is broken in python 3.13.7
+# Either way, it was never finished as I realized that some things could be done better.
 backpack = []
 items = ['apple','banana','knife','bazooka']
 story = {
