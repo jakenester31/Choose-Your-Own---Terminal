@@ -1,25 +1,88 @@
 class run:
     def __init__(self,obj,start):
         current = obj[start]
-        print(current[0])
+        res = ''
+        while True:
+            # before func
+            valid = isinstance(current,list) and len(current) > 2
+            if valid and 'before' in current[2] and callable(current[2]['before']):
+                current[2]['before'](res)
+            # input
+            res = self.option(current,res)
+            # after func
+            if valid and 'after' in current[2] and callable(current[2]['after']):
+                current[2]['after'](res)
+            
+            if res is False: break
+            if res in current[1]:
+                keys = [*current[1]]
+                if isinstance(keys[keys.index(res)],counter):
+                    keys[keys.index(res)].use()
+                current = obj[current[1][res]]
+            
     
-def listToString(items,human = False):
-    string = ''
-    if human:
-        string += 'a'
-        if items[0][0] in 'euioa': string += 'n'
-        string += ' '
-    for index,item in enumerate(items):
-        if human and index == len(items) - 1:
-            string += 'and '
+    def option(self,current,res):
+        print()        
+        if isinstance(current,branch):
+            for i in [*current[1]]:
+                if isinstance(i,counter) and i.lifespan == 0:
+                    del current[1][i]
+            if isinstance(current[0],f_string):
+                nar = current[0].using(res)
+            else: nar = current[0]
+            res = input(str(nar) + f' ( {listToString([*current[1]])} ) >> ')
+        else: 
+            nar = current
+            if isinstance(current,f_string):
+                nar = current.using(res)
+            print(nar)
+            return False
+        return res
         
-        string += str(item)
-        
-        if index < len(items) - 1:
-            string += ', '
-    return string
 
-# def stringFormatter(string:str,map:dict):
+def unpack(obj,value = True):
+    if not isinstance(obj,dict): return False
+    temp = type(obj)()
+    for i in obj:
+        if isinstance(i,tuple):
+            for index,item in enumerate(i):
+                if value and isinstance(obj[i],tuple):
+                    if len(obj[i]) > index: temp[item] = obj[i][index]
+                else: temp[item] = obj[i]
+        else: temp[i] = obj[i]
+    return temp
+            
+class branch(list):
+    def __init__(self,text,options,functions = {}):
+        super().__init__([text,unpack(options,value=True),functions])
+
+class counter:
+    def __init__(self,key,lifespan):
+        self.key = key
+        self.lifespan = lifespan
+        self._original_lifespan = lifespan
+    def __str__(self):
+        if self.lifespan > 0:
+            return self.key
+        return '!LIFESPAN'
+
+    def use(self):
+        if self.lifespan > 0:
+            self.lifespan -= 1
+            return self.key
+    
+    def __repr__(self):
+        return f'<Counter: {self.key}, {self.lifespan}>'
+    
+    def __hash__(self):
+        return hash(self.key)
+    
+    def __eq__(self, other):
+        if isinstance(other, counter):
+            return self.key == other.key
+        elif isinstance(other, str):
+            return self.key == other
+        return NotImplemented
     
 class f_string:
     def __init__(self,string:str,map:dict):
@@ -28,26 +91,46 @@ class f_string:
     
     def __str__(self): return self.using()
     def using(self,*args):
+        string = self.string
         for i in self.map:
             insert = self.map[i]
             if callable(insert):
-                insert = insert(*args)
-        return self.string[: self.string.find(i) - 1] + insert + self.string[self.string.find(i) + len(i) :]
+                insert = str(insert(*args))
+            string = string[: string.find('$' + i)] + insert + string[string.find('$' + i) + len(i) + 1 :]
+        return string
 
-items = ['apple','knife','blender','table']
+def listToString(items,human = False):
+    string = ''
+    if human:
+        string += 'a'
+        if items and items[0] and items[0][0].lower() in 'euioa': string += 'n'
+        string += ' '
+    for index,item in enumerate(items):
+        if human and index == len(items) - 1 and len(items) > 1:
+            string += 'and '
+        
+        string += str(item)
+        
+        if index < len(items) - 1:
+            string += ', '
+    if string == 'a ': return ''
+    return string
+
+items = ['apple','knife','blender','mini-table']
+inventory = []
 story = {
-    'start':[
-            f_string('You look at the kitchen table, and on it, you see $items.',{'items':listToString(items,True)}),
-            {{tuple(items):{'ktt':items}}} 
-        ]
+    'start':branch(
+        f_string('On the kitchen table you see $items. Take...',{'items':lambda _: listToString(items,True)}),
+        {tuple([counter(i,1) for i in items]):'ktt','nothing':'end'},
+        {'after':lambda res: (items.remove(res), inventory.append(res)) if res in items else None}
+    ),
+    
+    'ktt':branch(
+        f_string('You took $item',{'item':lambda res: res}),
+        {'again':'start', 'finish':'end'}
+    ),
+    
+    'end':f_string('you have $items',{'items':lambda _: listToString(inventory,True)})
 }
 
 run(story,'start')
-
-# branch: string, connections, before/after
-# string, before
-
-# connections:
-#   simple: a:b, the simplest connection. an option leads you to a branch
-#   multi: (a,b...c):d, multiple options lead to a branch. parsed into multiple simple connections
-#   counter: 

@@ -36,6 +36,7 @@ def run(obj,at):
     # body
     while True:
         while True:
+            print()
             res = input(current[0] + ' ' + inputBuilder(current[1]) + ' >> ')
             if res in current[1]: break
         try:
