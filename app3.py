@@ -113,11 +113,13 @@ def listToString(items,human = False):
         string += str(item)
         
         if index < len(items) - 1:
-            string += ', '
+            if len(items) > 2 or not human:
+                string += ','
+            string += ' '
     if string == 'a ': return ''
     return string
 
-items = ['apple','knife','blender','mini-table']
+items = ['apple','knife','blender','gun','bazooka','banana']
 inventory = []
 story = {
     'start':branch(
@@ -134,4 +136,22 @@ story = {
     'end':f_string('you have $items',{'items':lambda _: listToString(inventory,True)})
 }
 
-run(story,'start')
+story2 = {
+    'take': branch(
+        f_string(
+            '$takeYou look at the table $againand see $items. Take...', {
+                'take':lambda res: f'You took {listToString([res],True)}. ' if res in inventory else '',
+                'again':lambda res: 'again ' if res in inventory else '',
+                'items':lambda _: listToString(items,True) or 'nothing'
+            }
+        ),
+        {tuple([counter(i,1) for i in items]):'take','nothing':'end'},
+        {'after':lambda res: (items.remove(res), inventory.append(res)) if res in items else None}
+    ),
+    
+    'end': f_string('you have $items',{'items':lambda _: listToString(inventory,True)})
+}
+# plan to add:
+# conditional option: check if condition true then reroute from chosen branch elsewhere
+
+run(story2,'take')
