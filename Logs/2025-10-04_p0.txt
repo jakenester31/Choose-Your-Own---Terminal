@@ -1,0 +1,28 @@
+[SYST]  SUCCESSFUL START
+        ROOT OBJECT = {
+            "start": [
+                "",
+                {},
+                {}
+            ],
+            "tale": [
+                "",
+                {}
+            ]
+        }
+        - 23:36:27
+
+[SYST]  SUCCESSFUL START
+        ROOT OBJECT = {
+            "start": [
+                "",
+                {},
+                {}
+            ],
+            "tale": [
+                "",
+                {}
+            ]
+        }
+        - 23:37:05
+
