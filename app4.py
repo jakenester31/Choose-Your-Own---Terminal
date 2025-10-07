@@ -150,30 +150,32 @@ class logger:
         return file()
 
     def generic(self,type = 'undefined',*messages):
+        indent = ' ' * (len(type) + 3)
         with open(self.target,'a+') as f:
-            f.write(f'[{type.upper()}] {f'\n{' ' * (len(type) + 3)}'.join(messages)}\n')
+            f.write(f'[{type.upper()}] {f'\n{indent}'.join(messages).replace('\n','\n' + indent)}\n')
     
     def throw(self,key:str):
         type = self.predefined[key][0]
         title = str(self.predefined[key][1])
         messages: list | tuple = self.predefined[key][2 :]
         messages = [str(i) for i in messages]
-        # indent = f'\n{' ' * (len(str(type)) + 3)}'
+        # indent = ' ' * (len(str(type)) + 4)
         indent = ' ' * 8
         with open(self.target,'a+') as f:
             f.write(f'[{str(type)[: 4].upper()}]  {title}\n')
-            f.write(indent.join(messages))
-            f.write('\n' + indent + '- ' + datetime.now().strftime("%H:%M:%S"))
+            f.write(indent + ('\n' + indent).join(messages).replace('\n','\n' + indent))
+            f.write(f"\n{indent}Time stamp - " + datetime.now().strftime("%H:%M:%S"))
             f.write('\n\n')
     
     predefined: dict[str,list[str | f_string] | tuple[str | f_string,...]] = {
         'INVALID_START':[ 'CRIT',
             f_string('START KEY "$key" IS NOT CONTAINED IN ROOT OBJECT',{'key':lambda: engine.main.start}),
-            'TERMINATING RUN INSTANCE'
+            'TERMINATING RUN INSTANCE',
+            'OTHER TEXT'
         ],
         'VALID_START': [ 'SYST', 
             'SUCCESSFUL START', 
-            f_string('$obj',{'obj':lambda: ' ' * 8 + 'ROOT OBJECT = ' + dumps(engine.main.obj,indent=4).replace('\n','\n' + ' ' * 8) })
+            f_string('$obj',{'obj':lambda: 'ROOT OBJECT = ' + dumps(engine.main.obj,indent=4)})
         ],
     }
 
@@ -215,9 +217,16 @@ class engine:
         self.current = obj[start]
         self.logs.throw('VALID_START')
 
+items = ['knife','blender']
+
+
 story: dict[str,branch | end] = {
-    'take':branch('',{}),
-    'finish':end('')
+    'take':branch( 'You see a blender and knife, take one.',
+        {wrap(items,counter,1):'take','nothing':'end'},
+        # {'after':lambda res,worked: ''}
+    ),
+    'end':end('')
 }
 
-engine().run(story,'start')
+
+engine().run(story,'take')
