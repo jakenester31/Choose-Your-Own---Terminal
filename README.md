@@ -1,4 +1,5 @@
-# Choose Your Own Adventure - Terminal
-A simple choose your own adventure game engine for the terminal.
+# Choose Your Own Adventure
+A simple choose your own adventure game engine
 
-Uses Python 3.13.7
+v3 Uses Python 3.13.7
+v4 Uses Python 2.13.9

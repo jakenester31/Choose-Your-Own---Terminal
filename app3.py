@@ -214,7 +214,7 @@ if __name__ == "__main__":
         'take': branch(
             f_string(
                 '$takeYou look at the table $againand see $items. Take...', {
-                    'take':lambda res, worked: f'You took {listToString([res],True) + str(worked)}. ' if res in inventory else '',
+                    'take':lambda res, worked: f'You took {listToString([res],True)}. ' if res in inventory else '',
                     'again':lambda res: 'again ' if res in inventory else '',
                     'items':lambda _: listToString(items,True) or 'nothing'
                 }
@@ -237,4 +237,4 @@ if __name__ == "__main__":
     # conditional option: check if condition true then reroute from chosen branch elsewhere
     # make the results able to map to lambdas, lambdas then return the branch
 
-    runner = run(infTest,'a')
+    runner = run(story,'take')
