@@ -176,7 +176,7 @@ def listToString(items:list[Any],human:bool = False) -> str:
     if string == 'a ': return ''
     return string
 
-def wrap(objs:list[Any] | tuple[Any,...],wrapper:type,args:tuple[Any,...] | list[Any] | Any):
+def wrap(objs:list[Any] | tuple[Any,...],wrapper:type,args:tuple[Any,...] | list[Any] | Any) -> tuple:
     if not (isinstance(args,tuple) or isinstance(args,list)):
         args = [args]
     ret = []
