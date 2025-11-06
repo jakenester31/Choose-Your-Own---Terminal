@@ -1,9 +1,9 @@
 from functools import partialmethod
-from opers import binaryOperators
+from opers import unaryOperators, binaryOperators
 
-class Vector:
+class Vector():
     def __init__(self,x:float,y:float):
-        self.pos = [0,0]
+        self.pos: list[float] = [0,0]
         self.x = x
         self.y = y
     
@@ -27,11 +27,9 @@ class Vector:
         yield self.x
         yield self.y
     
-    def op(self,other,operator):
-        print('try operator')
-        try: 
-            if isinstance(other,str): other = float(other)
-        except: pass
+    def binaryOperation(self,other,operator):
+        try: other = float(other) if isinstance(other,str) else other
+        except: raise TypeError(f"Failed to convert string literal '{other}' to float during operand conversion") from None
         match other:
             case Vector() | IntVector():
                 x = operator(self.x,other.x)
@@ -39,26 +37,26 @@ class Vector:
             case int() | float():
                 x = operator(self.x,other)
                 y = operator(self.y,other)
-            case str():
-                raise TypeError(f"could not convert string to float: '{other}' when attempting operand conversion")
             case _: return NotImplemented
         return Vector(x,y)
-[ setattr(Vector,f'__{i.__name__}__', partialmethod(lambda self,other,i: self.op(other,i),i = i)  ) for i in binaryOperators ]
+    
+    def unaryOperation(self,operator):
+        return Vector(operator(self.x),operator(self.y))
+[ setattr(Vector,f'__{i.__name__}__', partialmethod(lambda self, i: self.unaryOperation(i),i = i) ) for i in unaryOperators ]
+[ setattr(Vector,f'__{i.__name__}__', partialmethod(lambda self,other,i: self.binaryOperation(other,i),i = i)  ) for i in binaryOperators ]
 
 class IntVector(Vector):
-    def __init__(self,x,y):
-        super().__init__(x,y)
+    def __init__(self,x,y): super().__init__(x,y)
     
     @Vector.x.setter
     def x(self,val): self.pos[0] = round(float(val))    
     @Vector.y.setter
     def y(self,val): self.pos[1] = round(float(val))
     
-    def op(self,other,operator):
-        val = super().op(other,operator)
+    def binaryOperation(self,other,operator):
+        val = super().binaryOperation(other,operator)
         if val is NotImplemented: return NotImplemented 
-        return val # IntVector(*val)
+        return val if isinstance(self,IntVector) and isinstance(other,IntVector) else IntVector(*val)
 
 a = Vector(123.523,134)
-
-print(Vector(1,1.10) ** a)
+print(Vector(1,1) + 1)
