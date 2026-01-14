@@ -27,7 +27,7 @@ class run:
                 index = current[2 -(valid == 2)]
                 if 'before' in index and callable(index['before']):
                     safeCall(index['before'],res,res in current[1])
-                    if self.reroute in obj and self.handleReroute(self.reroute,obj,current):
+                    if self.reroute and self.reroute in obj and self.handleReroute(self.reroute,obj,current):
                         current = obj[self.reroute]
                         self.reroute = None
                         continue
@@ -227,7 +227,7 @@ if __name__ == "__main__":
     }
     
     infTest = {
-        'a': branch('AAA',{},{'after':lambda:reroute('b')}),
+        'a': branch('AAA',{},{'before':lambda:reroute('b')}),
         'b': branch('BBB',{},{'before':lambda:reroute('a')})
     }
 
@@ -238,3 +238,5 @@ if __name__ == "__main__":
     # make the results able to map to lambdas, lambdas then return the branch
 
     runner = run(story,'take')
+    
+    # look down
